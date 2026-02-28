@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gezdiğim Şehirler – Büşra Ünlü</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<nav>
+    <a class="nav-brand" href="index.html">🗺️ Büşra Ünlü</a>
+    <div class="nav-links">
+        <a href="index.html">Hakkımda</a>
+        <a href="hobilerim.html" class="active">Gezdiğim Şehirler</a>
+        <a href="iletisim.html">İletişim</a>
+    </div>
+</nav>
+
+<!-- Hero -->
+<div class="map-hero">
+    <h1>📍 Gezdiğim Türkiye Şehirleri</h1>
+    <p>Haritada işaretçilere tıklayarak şehir hakkında bilgi alabilirsiniz.</p>
+</div>
+
+<!-- İstatistik Barı -->
+<div class="stats-bar">
+    <div class="stat">
+        <div class="stat-number" id="city-count">14</div>
+        <div class="stat-label">Şehir</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">7</div>
+        <div class="stat-label">Bölge</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">~%18</div>
+        <div class="stat-label">Türkiye'nin İlleri</div>
+    </div>
+</div>
+
+<!-- Harita -->
+<div id="map"></div>
+
+<!-- Şehir Listesi -->
+<div class="city-list-section">
+    <div class="card">
+        <h3 class="section-title"><span class="icon">🗺️</span> Ziyaret Edilen Şehirler</h3>
+        <div class="city-grid" id="city-grid"></div>
+    </div>
+</div>
+
+<footer>
+    &copy; 2025 <span>Büşra Ünlü</span> · CBS Uzman Yardımcısı
+</footer>
+
+<script>
+var cities = [
+    { name:"İstanbul", coords:[41.01,28.97], img:"images/istanbul.jpg", link:"https://tr.wikipedia.org/wiki/%C4%B0stanbul" },
+    { name:"Ankara",   coords:[39.93,32.85], img:"images/ankara.jpg",   link:"https://tr.wikipedia.org/wiki/Ankara" },
+    { name:"Antalya",  coords:[36.89,30.70], img:"images/antalya.jpg",  link:"https://tr.wikipedia.org/wiki/Antalya" },
+    { name:"İzmir",    coords:[38.42,27.14], img:"images/izmir.jpg",    link:"https://tr.wikipedia.org/wiki/%C4%B0zmir" },
+    { name:"Bursa",    coords:[40.18,29.06], img:"images/bursa.jpg",    link:"https://tr.wikipedia.org/wiki/Bursa" },
+    { name:"Mersin",   coords:[36.80,34.63], img:"images/mersin.jpg",   link:"https://tr.wikipedia.org/wiki/Mersin" },
+    { name:"Erzurum",  coords:[39.90,41.27], img:"images/erzurum.jpg",  link:"https://tr.wikipedia.org/wiki/Erzurum" },
+    { name:"Sivas",    coords:[39.75,37.02], img:"images/sivas.jpg",    link:"https://tr.wikipedia.org/wiki/Sivas" },
+    { name:"Artvin",   coords:[41.18,41.82], img:"images/artvin.jpg",   link:"https://tr.wikipedia.org/wiki/Artvin" },
+    { name:"Kars",     coords:[40.60,43.10], img:"images/kars.jpg",     link:"https://tr.wikipedia.org/wiki/Kars" },
+    { name:"Çanakkale",coords:[40.15,26.41], img:"images/canakkale.jpg",link:"https://tr.wikipedia.org/wiki/%C3%87anakkale" },
+    { name:"Karabük",  coords:[41.20,32.62], img:"images/karabuk.jpg",  link:"https://tr.wikipedia.org/wiki/Karab%C3%BCk" },
+    { name:"Yalova",   coords:[40.65,29.27], img:"images/yalova.jpg",   link:"https://tr.wikipedia.org/wiki/Yalova" },
+    { name:"Muğla",    coords:[37.21,28.36], img:"images/mugla.jpg",    link:"https://tr.wikipedia.org/wiki/Mu%C4%9Fla" }
+];
+
+// Haritayı başlat
+var map = L.map('map', { zoomControl: true }).setView([39.0, 35.0], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıcıları',
+    maxZoom: 18
+}).addTo(map);
+
+// Şehir sayacı
+document.getElementById('city-count').textContent = cities.length;
+
+// Şehir grid ve marker
+var grid = document.getElementById('city-grid');
+
+cities.forEach(function(city) {
+    // Grid pill
+    var pill = document.createElement('div');
+    pill.className = 'city-pill';
+    pill.innerHTML = '📍 ' + city.name;
+    grid.appendChild(pill);
+
+    // Marker ikonu
+    var icon = L.divIcon({
+        html: '<div class="city-marker"><img src="' + city.img + '" alt="' + city.name + '"></div>',
+        className: '',
+        iconSize: [52, 52],
+        iconAnchor: [26, 26],
+        popupAnchor: [0, -30]
+    });
+
+    // Popup içeriği
+    var popupContent =
+        '<div class="popup-inner">' +
+            '<div class="popup-city-name">📍 ' + city.name + '</div>' +
+            '<a class="popup-link" href="' + city.link + '" target="_blank">Wikipedia\'da Oku →</a>' +
+        '</div>';
+
+    L.marker(city.coords, { icon: icon })
+        .addTo(map)
+        .bindPopup(popupContent, { maxWidth: 200 });
+
+    // Pill tıklaması haritayı o şehire odaklar
+    pill.addEventListener('click', function() {
+        map.flyTo(city.coords, 10, { duration: 1.2 });
+    });
+    pill.style.cursor = 'pointer';
+});
+</script>
+
+</body>
+</html>
